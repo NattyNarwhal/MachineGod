@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+	<head>
+		<title><%= channel %></title>
+		<style>
+			.meta {
+				color: #aaa;
+			}
+			.message {
+				font-family: monospace;
+			}
+			.navtable {
+				width: 100%;
+			}
+			.navtable td {
+				width: 33%;
+			}
+			.navtable .prev {
+				text-align: left;
+			}
+			.navtable .current {
+				text-align: center;
+				font-weight: bold;
+			}
+			.navtable .prev {
+				text-align: right;
+			}
+			.navtable .today {
+				text-align: center;
+				width: 100%;
+			}
+			.logs thead {
+				display: none
+			}
+			.when a, .current a {
+				color: inherit;
+				text-decoration: none;
+			}
+			.who {
+				text-align: right;
+			}
+			.logs tr:hover {
+				background-color: #ffc;
+			}
+		</style>
+	</head>
+	<body>
+		<%
+			{:ok, date_from_erl} = Date.from_erl(date)
+			date_str = Date.to_string(date_from_erl)
+		%>
+		<%# XXX: Fix this to be a non-table %>
+		<table class="navtable">
+			<tr>
+				<%
+					prev_date = date_from_erl
+					  |> Date.add(-1)
+					{py, pm, pd} = Date.to_erl(prev_date)
+				%>
+				<td class="prev">
+					<a href="/logs/<%= slug %>/<%= py %>/<%= pm %>/<%= pd %>">
+					<%= Date.to_string(prev_date) %>
+					</a>
+				</td>
+				<td class="current">
+					<% {y, m, d} = date %>
+					<a href="/logs/<%= slug %>/<%= y %>/<%= m %>/<%= d %>">
+					<%= date_str %>
+					</a>
+				</td>
+				<%
+					next_date = date_from_erl
+					  |> Date.add(1)
+					{ny, nm, nd} = Date.to_erl(next_date)
+					today_date = NaiveDateTime.local_now |> NaiveDateTime.to_date
+				%>
+				<td class="next">
+				<%= if Date.compare(date_from_erl, today_date) in [:lt] do %>
+					<a href="/logs/<%= slug %>/<%= ny %>/<%= nm %>/<%= nd %>">
+					<%= Date.to_string(next_date) %>
+					</a>
+				<% else %>
+					<em>Latest</em>
+				<% end %>
+				</td>
+			</tr>
+			<%= unless Date.compare(date_from_erl, today_date) in [:eq] do %>
+			<tr>
+				<td class="today" colspan="3">
+					<% {ty, tm, td} = today_date |> Date.to_erl %>
+					<a href="/logs/<%= slug %>/<%= ty %>/<%= tm %>/<%= td %>">
+						Today
+					</a>
+				</td>
+			</tr>
+			<% end %>
+		</table>
+		<table class="logs">
+			<thead>
+				<tr>
+					<th>When</th>
+					<th>Who</th>
+					<th>What</th>
+				</tr>
+			</thead>
+			<tbody>
+			<%= for row = {ts, from, what, id} <- rows do %>
+				<tr>
+					<td class="when">
+						<a id="<%= id %>" href="/logs/<%= slug %>/<%= y %>/<%= m %>/<%= d %>#<%= id %>">
+						<%= ts |> NaiveDateTime.to_time |> Time.to_string %>
+						</a>
+					</td>
+					<td class="who"><%= from %></td>
+					<td class="what"><%= what |> Phoenix.HTML.raw %></td>
+				</tr>
+			<% end %>
+			</tbody>
+		</table>
+	</body>
+</html>

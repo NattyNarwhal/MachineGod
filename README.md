@@ -1,6 +1,12 @@
 # MachineGod
 
-**TODO: Add description**
+Really dumb three-part bot:
+
+* IRC client, connects to IRCds, scoops up logs
+* SQL log manager, takes structured tuples and slams them into the database
+* Simplistic web server with Plug, actually renders them with help of EEx
+
+Uses DB2 for IBM i as a storage backend. (Yes, really.)
 
 ## Installation
 

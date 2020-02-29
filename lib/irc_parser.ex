@@ -1,10 +1,30 @@
 defmodule MachineGod.IrcParser do
+  @doc ~S"""
+  Determines if a string is a channel name.
+
+  ## Examples
+
+      iex> MachineGod.IrcParser.is_channel?("#test")
+      true
+
+  """
   def is_channel?(target) do
     String.first(target) in ["#", "&"]
   end
 
+  @doc ~S"""
+  Extracts the nick from a string, or returns the string otherwise.
+
+  ## Examples
+
+      iex> MachineGod.IrcParser.simple_name("foo!bar@xyzzy")
+      "foo"
+      iex> MachineGod.IrcParser.simple_name("irc.freenode.net")
+      "irc.freenode.net"
+
+  """
   def simple_name(from) do
-    if String.contains?(from, "!") do
+    if String.contains?(from, "!") and String.contains?(from, "@") do
       {nick, ident, host} = split_name(from)
       nick
     else
@@ -12,6 +32,15 @@ defmodule MachineGod.IrcParser do
     end
   end
 
+  @doc ~S"""
+  Converts an IRC ident and hostmask into a tuple.
+
+  ## Examples
+
+      iex> MachineGod.IrcParser.split_name("foo!bar@xyzzy")
+      {"foo", "bar", "xyzzy"}
+
+  """
   def split_name(from) do
     [nick, ident_host] = from
       |> String.split("!", [ parts: 2 ])
@@ -20,7 +49,17 @@ defmodule MachineGod.IrcParser do
     {nick, ident, host}
   end
 
-  # i.e @opuser, +voiceuser, etc.
+  @doc ~S"""
+  Takes the nick from /NAMES and extracts into a tuple of rank and user.
+
+  ## Examples
+
+      iex> MachineGod.IrcParser.names_parse("@foo")
+      {:operator, "foo"}
+      iex> MachineGod.IrcParser.names_parse("bar")
+      {:user, "bar"}
+
+  """
   def names_parse(name) do
     case name do
       "~" <> user ->

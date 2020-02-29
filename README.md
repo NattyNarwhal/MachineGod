@@ -8,6 +8,14 @@ Really dumb three-part bot:
 
 Uses DB2 for IBM i as a storage backend. (Yes, really.)
 
+## Testing
+
+For running the offline tests without starting the application, run
+
+```
+$ iex -S mix test --no-start
+```
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

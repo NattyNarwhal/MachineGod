@@ -46,6 +46,7 @@ defmodule MachineGod.IrcClient do
       {:topic, from, channel, topic} ->
         # This one is when a user sets the topic.
         GenServer.call(LogStore, {:topic, state[:server], from, channel, topic})
+        state
       {:privmsg, from, to, message} ->
         GenServer.call(LogStore, {:privmsg, state[:server], from, to, message})
         state

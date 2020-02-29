@@ -179,6 +179,9 @@ defmodule MachineGod.IrcParser do
       ["NOTICE", _] ->
         {from, to, message} = get_targeted_message(chunks)
         {:notice, from, to, message}
+      ["TOPIC", _] ->
+        {from, to, message} = get_targeted_message(chunks)
+        {:topic, from, to, message}
       ["PRIVMSG", _] ->
         {from, to, message} = get_targeted_message(chunks)
         {:privmsg, from, to, message}

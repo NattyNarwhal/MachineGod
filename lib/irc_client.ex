@@ -43,6 +43,9 @@ defmodule MachineGod.IrcClient do
         # annoyingly, it's two messages together...
         GenServer.call(LogStore, {:topic, state[:server], channel, topic})
         state
+      {:topic, from, channel, topic} ->
+        # This one is when a user sets the topic.
+        GenServer.call(LogStore, {:topic, state[:server], from, channel, topic})
       {:privmsg, from, to, message} ->
         GenServer.call(LogStore, {:privmsg, state[:server], from, to, message})
         state

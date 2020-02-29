@@ -80,6 +80,9 @@ defmodule MachineGod.LogStore do
         insert_message(dbcon, server, "PRIVMSG", from, to, message)
         #IO.puts("<#{from}> #{message}")
         {:reply, :ok, state}
+      {:topic, server, from, to, message} ->
+        insert_message(dbcon, server, "TOPIC", from, to, message)
+        {:reply, :ok, state}
       {:topic, server, to, message} -> # XXX: see client
         insert_message(dbcon, server, "TOPIC", "", to, message)
         {:reply, :ok, state}

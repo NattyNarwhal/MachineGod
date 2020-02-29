@@ -7,7 +7,6 @@ defmodule MachineGod.AppRouter do
 
   defp html_process(message) do
     {:safe, message_safe} = message
-      |> to_string
       |> String.trim_trailing("\x01")
       |> Phoenix.HTML.html_escape
     # XXX: Recognize URLs...
@@ -16,30 +15,30 @@ defmodule MachineGod.AppRouter do
 
   defp row_action(row) do
     case row do
-      {message, 'KICK', kicked_to} ->
+      {message, "KICK", kicked_to} ->
         message_processed = html_process(message)
         "<span class=\"meta\">kicked</span> #{kicked_to} (<span class=\"message\">#{message_processed}</span>)"
-      {message, 'TOPIC', _} ->
+      {message, "TOPIC", _} ->
         message_processed = html_process(message)
         "<span class=\"meta\">topic set to</span> <span class=\"message\">#{message_processed}</span>"
-      {message, 'NOTICE', _} ->
+      {message, "NOTICE", _} ->
         message_processed = html_process(message)
         "<span class=\"meta\">announces</span> <span class=\"message\">#{message_processed}</span>"
-      {'\x01ACTION' ++ message, 'PRIVMSG', _} ->
+      {"\x01ACTION" <> message, "PRIVMSG", _} ->
         message_processed = html_process(message)
         "<span class=\"message\">#{message_processed}</span>"
-      {message, 'PRIVMSG', _} ->
+      {message, "PRIVMSG", _} ->
         message_processed = html_process(message)
         "<span class=\"meta\">says</span> <span class=\"message\">#{message_processed}</span>"
-      {message, 'PART', _} ->
+      {message, "PART", _} ->
         message_processed = html_process(message)
         "<span class=\"meta\">left the channel</span> (<span class=\"message\">#{message_processed}</span>)"
-      {message, 'QUIT', _} ->
+      {message, "QUIT", _} ->
         message_processed = html_process(message)
         "<span class=\"meta\">quit the server</span> (<span class=\"message\">#{message_processed}</span>)"
-      {_, 'JOIN', _} ->
+      {_, "JOIN", _} ->
         "<span class=\"meta\">joined the channel</span>"
-      {message, 'MODE', _} ->
+      {message, "MODE", _} ->
         message_processed = html_process(message)
         "<span class=\"meta\">set mode to</span> <span class=\"message\">#{message_processed}</span>"
     end
@@ -50,7 +49,6 @@ defmodule MachineGod.AppRouter do
     {erl_dt, to, from, message, action, id, kicked_to} = row
     {:ok, timestamp} = NaiveDateTime.from_erl(erl_dt)
     nick = from
-      |> to_string
       |> MachineGod.IrcParser.simple_name
     what = row_action({message, action, kicked_to})
     {timestamp, nick, what, id}

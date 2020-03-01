@@ -68,9 +68,11 @@ defmodule MachineGod.AppRouter do
     [slug_row] = GenServer.call(LogStore, {:queryslug, slug})
     name = elem(slug_row, 1)
     rows = GenServer.call(LogStore, {:querylogs, slug, erl_dt})
+    # turning it back into a timestamp for the sake of SQL...
+    {early, later} = GenServer.call(LogStore, {:querydates, slug, {erl_dt, {12, 0, 0}}})
     trs = rows
       |> Enum.map(&row_to_tr/1)
-    {:safe, html} = log_page(slug, name, erl_dt, trs)
+    {:safe, html} = log_page(slug, name, erl_dt, early, later, trs)
     conn
       |> send_resp(200, html)
   end
@@ -92,6 +94,6 @@ defmodule MachineGod.AppRouter do
 
   require EEx
 
-  EEx.function_from_file(:def, :log_page, "lib/log_page.eex", [:slug, :channel, :date, :rows], [ engine: Phoenix.HTML.Engine ])
+  EEx.function_from_file(:def, :log_page, "lib/log_page.eex", [:slug, :channel, :date, :early, :later, :rows], [ engine: Phoenix.HTML.Engine ])
   EEx.function_from_file(:def, :log_list_page, "lib/log_list_page.eex", [:rows], [ engine: Phoenix.HTML.Engine ])
 end

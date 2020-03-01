@@ -36,6 +36,42 @@ defmodule MachineGod.LogStore do
     :ok
   end
 
+  defp channel_dates(dbcon, slug, then) do
+    # XXX: Turn this nasty double query into a subquery stored procedure
+    # The casts are necessary or the driver will barf at us.
+    # The +1day on later is necessary or times from the same day will crease it.
+    # We get the timestamp instead of just date because Erlang ODBC will cast it to a string then.
+    sql_early = 'select max(posted_at) as "Earlier" from irclogger.privmsg msg'
+      ++ ' inner join irclogger.log_access la'
+      ++ ' on la.server_id = msg.server_id and la.channel_id = msg.to'
+      ++ ' where posted_at < date(cast(? as timestamp))'
+      ++ ' and la.slug = ?'
+    sql_later = 'select min(posted_at) as "Later" from irclogger.privmsg msg'
+      ++ ' inner join irclogger.log_access la'
+      ++ ' on la.server_id = msg.server_id and la.channel_id = msg.to'
+      ++ ' where posted_at >= (date(cast(? as timestamp)) + 1 day)'
+      ++ ' and la.slug = ?'
+    {:selected, _, early_rows} = :odbc.param_query(dbcon, sql_early,
+      [
+        {:sql_timestamp, [then]},
+        {{:sql_varchar, 1024}, [fix_param(slug)]},
+      ])
+    {:selected, _, later_rows} = :odbc.param_query(dbcon, sql_later,
+      [
+        {:sql_timestamp, [then]},
+        {{:sql_varchar, 1024}, [fix_param(slug)]},
+      ])
+    early = case early_rows do
+      [{:null}] -> nil
+      [{dt}] -> dt
+    end
+    later = case later_rows do
+      [{:null}] -> nil
+      [{dt}] -> dt
+    end
+    {early, later}
+  end
+
   @impl true
   def handle_call(req, from, state) do
     dbcon = state[:dbcon]
@@ -47,6 +83,9 @@ defmodule MachineGod.LogStore do
           ++ ' where la.visible = 1'
         {:selected, columns, rows} = :odbc.sql_query(dbcon, sql)
         {:reply, rows, state}
+      {:querydates, slug, then} ->
+        dates = channel_dates(dbcon, slug, then)
+        {:reply, dates, state}
       {:queryslug, slug} ->
         sql = 'select la.slug, la.name, la.server_id, la.channel_id, la.visible'
           ++ ' from irclogger.log_access la'

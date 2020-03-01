@@ -49,19 +49,22 @@
 		<%
 			{:ok, date_from_erl} = Date.from_erl(date)
 			date_str = Date.to_string(date_from_erl)
+			today_date = NaiveDateTime.local_now |> NaiveDateTime.to_date
 		%>
 		<%# XXX: Fix this to be a non-table %>
 		<table class="navtable">
 			<tr>
-				<%
-					prev_date = date_from_erl
-					  |> Date.add(-1)
-					{py, pm, pd} = Date.to_erl(prev_date)
-				%>
 				<td class="prev">
+				<%= if nil == early do %>
+					<em>Earliest</em>
+				<% else %>
+				<%
+					{{py, pm, pd}, _} = early
+				%>
 					<a href="/logs/<%= slug %>/<%= py %>/<%= pm %>/<%= pd %>">
-					<%= Date.to_string(prev_date) %>
+					<%= {py, pm, pd} |> Date.from_erl! |> Date.to_string %>
 					</a>
+				<% end %>
 				</td>
 				<td class="current">
 					<% {y, m, d} = date %>
@@ -69,19 +72,16 @@
 					<%= date_str %>
 					</a>
 				</td>
-				<%
-					next_date = date_from_erl
-					  |> Date.add(1)
-					{ny, nm, nd} = Date.to_erl(next_date)
-					today_date = NaiveDateTime.local_now |> NaiveDateTime.to_date
-				%>
 				<td class="next">
-				<%= if Date.compare(date_from_erl, today_date) in [:lt] do %>
-					<a href="/logs/<%= slug %>/<%= ny %>/<%= nm %>/<%= nd %>">
-					<%= Date.to_string(next_date) %>
-					</a>
-				<% else %>
+				<%= if nil == later do %>
 					<em>Latest</em>
+				<% else %>
+				<%
+					{{ny, nm, nd}, _} = later
+				%>
+					<a href="/logs/<%= slug %>/<%= ny %>/<%= nm %>/<%= nd %>">
+					<%= {ny, nm, nd} |> Date.from_erl! |> Date.to_string %>
+					</a>
 				<% end %>
 				</td>
 			</tr>

@@ -11,6 +11,8 @@ defmodule MachineGod.AppRouter do
       |> Phoenix.HTML.html_escape
     # XXX: Recognize URLs...
     message_safe
+      |> IO.iodata_to_binary # XXX: prob slow
+      |> MircParser.render
   end
 
   defp row_action(row) do

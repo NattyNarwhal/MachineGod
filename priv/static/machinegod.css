@@ -1,0 +1,39 @@
+.meta {
+	color: #aaa;
+}
+.message {
+	font-family: monospace;
+}
+.navtable {
+	width: 100%;
+}
+.navtable td {
+	width: 33%;
+}
+.navtable .prev {
+	text-align: left;
+}
+.navtable .current {
+	text-align: center;
+	font-weight: bold;
+}
+.navtable .prev {
+	text-align: right;
+}
+.navtable .today {
+	text-align: center;
+	width: 100%;
+}
+.logs thead {
+	display: none
+}
+.when a, .current a {
+	color: inherit;
+	text-decoration: none;
+}
+.who {
+	text-align: right;
+}
+.logs tr:hover {
+	background-color: #ffc;
+}

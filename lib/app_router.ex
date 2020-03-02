@@ -2,6 +2,11 @@ defmodule MachineGod.AppRouter do
   use Plug.Router
   use Plug.Debugger, otp_app: :machinegod
 
+  plug Plug.Logger
+  plug Plug.Static,
+    at: "/static",
+    from: {:machinegod, "priv/static"}
+
   plug :match
   plug :dispatch
 

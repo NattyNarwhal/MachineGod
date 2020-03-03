@@ -55,6 +55,13 @@
 				</td>
 			</tr>
 			<% end %>
+			<tr>
+				<td>
+					<form method="post">
+						<input type="search" name="query" placeholder="search logs..." />
+					</form>
+				</td>
+			</tr>
 		</table>
 		<table class="logs">
 			<thead>

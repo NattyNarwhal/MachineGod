@@ -2,6 +2,7 @@ defmodule MachineGod.AppRouter do
   use Plug.Router
   use Plug.Debugger, otp_app: :machinegod
 
+  plug Plug.Parsers, parsers: [:urlencoded]
   plug Plug.Logger
   plug Plug.Static,
     at: "/static",
@@ -82,6 +83,19 @@ defmodule MachineGod.AppRouter do
       |> send_resp(200, html)
   end
 
+  post "/logs/:slug/" do
+    [slug_row] = GenServer.call(LogStore, {:queryslug, slug})
+    name = elem(slug_row, 1)
+    query = conn.params["query"]
+    rows = GenServer.call(LogStore, {:querysearch, slug, query}) |> IO.inspect
+    trs = rows
+      |> Enum.map(&row_to_tr/1)
+    search_tag = Phoenix.HTML.Tag.tag(:input, [name: "query", type: :search, placeholder: "search logs...", class: "query", value: query])
+    {:safe, html} = search_page(slug, name, query, search_tag, trs)
+    conn
+      |> send_resp(200, html)
+  end
+
   get "/logs/:slug" do
     {erl_dt, {_, _, _}} = NaiveDateTime.local_now
       |> NaiveDateTime.to_erl
@@ -100,5 +114,6 @@ defmodule MachineGod.AppRouter do
   require EEx
 
   EEx.function_from_file(:def, :log_page, "lib/log_page.eex", [:slug, :channel, :date, :early, :later, :rows], [ engine: Phoenix.HTML.Engine ])
+  EEx.function_from_file(:def, :search_page, "lib/search_page.eex", [:slug, :channel, :query, :search_tag, :rows], [ engine: Phoenix.HTML.Engine ])
   EEx.function_from_file(:def, :log_list_page, "lib/log_list_page.eex", [:rows], [ engine: Phoenix.HTML.Engine ])
 end

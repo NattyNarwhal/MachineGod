@@ -37,3 +37,6 @@
 .logs tr:hover {
 	background-color: #ffc;
 }
+.search {
+	width: 100%;
+}

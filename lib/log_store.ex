@@ -72,6 +72,20 @@ defmodule MachineGod.LogStore do
     {early, later}
   end
 
+  defp search(dbcon, slug, query) do
+    # XXX: Do we have FTS on db2i?
+    sql = 'select msg.posted_at, msg.to, msg.from, msg.message, msg.action, msg.message_id, msg.kicked_to'
+      ++ ' from irclogger.privmsg msg'
+      ++ ' inner join irclogger.log_access la on msg.to = la.channel_id and msg.server_id = la.server_id'
+      ++ ' where la.slug = ? and message like concat(\'%\', concat(?, \'%\')) and action = \'PRIVMSG\''
+    {:selected, _, rows} = :odbc.param_query(dbcon, sql,
+      [
+        {{:sql_varchar, 1024}, [fix_param(slug)]},
+        {{:sql_varchar, 1024}, [fix_param(query)]},
+      ])
+    rows
+  end
+
   @impl true
   def handle_call(req, from, state) do
     dbcon = state[:dbcon]
@@ -113,6 +127,9 @@ defmodule MachineGod.LogStore do
             {:sql_integer, [month]},
             {:sql_integer, [day]}
           ])
+        {:reply, rows, state}
+      {:querysearch, slug, query} ->
+        rows = search(dbcon, slug, query)
         {:reply, rows, state}
       # Don't log private messages (XXX: Handle local channels)
       {:privmsg, server, from, to, message} ->
